@@ -44,7 +44,11 @@
         if (lastFocus && lastFocus.focus) lastFocus.focus();
       }
 
-      trigger.addEventListener('click', open);
+      trigger.addEventListener('click', function (e) {
+        e.preventDefault();
+        open();
+      });
+
       if (closeBtn) closeBtn.addEventListener('click', close);
 
       overlay.addEventListener('mousedown', function (e) {
@@ -60,6 +64,7 @@
 
     setupModal('emailBtn', 'emailModal');
     setupModal('biliBtn', 'biliModal');
+    setupModal('modelScoutBtn', 'modelScoutModal');
 
     var copyBtn = document.getElementById('copyBtn');
     if (copyBtn) {
