@@ -498,17 +498,6 @@
     window.addEventListener('mouseleave', onLeave);
     window.addEventListener('blur', onLeave);
 
-    // 滚动时暂停背景点阵：滚动本身就要不停合成整页，
-    // 再叠一个全屏 canvas 重绘会明显掉帧。停 140ms 后自动恢复。
-    let scrollTimer = 0;
-    window.addEventListener('scroll', () => {
-      if (raf) { cancelAnimationFrame(raf); raf = 0; }
-      clearTimeout(scrollTimer);
-      scrollTimer = setTimeout(() => {
-        if (!document.hidden && !raf) { last = performance.now(); acc = 0; raf = requestAnimationFrame(frame); }
-      }, 140);
-    }, { passive: true });
-
     document.addEventListener('visibilitychange', () => {
       if (document.hidden) { cancelAnimationFrame(raf); raf = 0; }
       else if (!raf) { last = performance.now(); raf = requestAnimationFrame(frame); }
