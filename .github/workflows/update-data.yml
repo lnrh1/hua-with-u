@@ -1,0 +1,47 @@
+name: 自动更新数据
+
+on:
+  push:
+    paths:
+      - '*.mp3'
+      - 'tools/**'
+      - '.github/workflows/update-data.yml'
+  schedule:
+    - cron: '0 2 * * *'      # 每天 UTC 02:00（北京时间 10:00）
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-data
+  cancel-in-progress: true
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: 更新歌单（扫描 mp3、解码生成波形）
+        run: node tools/update-music.mjs
+
+      - name: 更新追番 / 追剧
+        continue-on-error: true
+        run: node tools/update-bangumi.mjs
+
+      - name: 提交变化
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add music-data.js bangumi-data.js
+          if git diff --cached --quiet; then
+            echo "数据无变化，跳过提交"
+          else
+            git commit -m "chore: 自动更新歌单与追番数据"
+            git push
+          fi
