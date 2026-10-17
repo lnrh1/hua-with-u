@@ -1,0 +1,10 @@
+# 本地生成缓存（记录已解码文件的指纹，避免重复解码）
+.music-cache.json
+
+# 依赖与系统文件
+node_modules/
+.DS_Store
+Thumbs.db
+
+# 可选的本地元数据覆盖（如果你不想提交自己的命名，就放开这行）
+# music-meta.json
