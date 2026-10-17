@@ -30,7 +30,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
 
       # ubuntu runner 自带 Chrome，tools/browser.mjs 会直接找到它
       - name: 确认浏览器可用
