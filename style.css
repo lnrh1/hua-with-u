@@ -1119,13 +1119,6 @@ body.loading .wrap {
   color: var(--fg-3);
 }
 
-@media (max-width: 560px) {
-  .fav-card { padding: 16px 14px 14px; }
-  .fav-cover { width: 70px; height: 93px; }
-  .fav-top .chev { width: 46px; height: 46px; }
-  .fav-top .chev svg { width: 22px; height: 22px; }
-}
-
 /* ── 底部播放条 ──────────────────────────────── */
 .dock {
   position: fixed;
@@ -1274,7 +1267,16 @@ body.loading .wrap {
   .dock-ctrl { margin-left: auto; }
 }
 
+/* ── 响应式 ───────────────────────────────── */
+@media (max-width: 720px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .repo-grid { grid-template-columns: 1fr; }
+}
+
 @media (max-width: 560px) {
+  body { padding: 20px 14px 40px; }
+
+  /* ── 底部播放条：两行布局 + 安全区域 ── */
   .dock {
     bottom: calc(10px + env(safe-area-inset-bottom, 0px));
     width: calc(100% - 20px);
@@ -1287,30 +1289,26 @@ body.loading .wrap {
   .dock-ctrl .pbtn.ghost { width: 44px; height: 44px; }
   .music-card { padding: 16px 14px 14px; }
 
-  /* 移动端触摸目标增大 */
-  .track-btn { width: 44px; height: 44px; }
-  .track-btn .rb-ic { width: 20px; height: 20px; }
+  /* ── 触摸目标 >= 44px（含 1px 边框）── */
+  .track .ringbtn { width: 46px; height: 46px; }
+  .track .ringbtn .rb-ic { width: 20px; height: 20px; }
+  .track .ringbtn .rb-ring { inset: -3px; width: calc(100% + 6px); height: calc(100% + 6px); }
   .fav-top { padding: 12px 2px; }
+  .fav-top .chev { width: 46px; height: 46px; }
+  .fav-top .chev svg { width: 22px; height: 22px; }
   .fav-name { font-size: 14px; }
+  .fav-card { padding: 16px 14px 14px; }
+  .fav-cover { width: 70px; height: 93px; }
 
-  /* 移动端安全区域 */
+  /* ── 底部留白 + 安全区域 ── */
   .wrap { padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
 
-  /* 移动端性能优化：减少 blur */
+  /* ── 性能：移动端 blur 更轻 ── */
   .rv { filter: blur(4px); }
   .rv.rv-in { filter: blur(0); }
   .rv.rv-in.rv-settled, .rv.rv-settled { filter: none !important; }
-}
 
-/* ── 响应式 ───────────────────────────────── */
-@media (max-width: 720px) {
-  .stats { grid-template-columns: repeat(2, 1fr); }
-  .repo-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 560px) {
-  body { padding: 20px 14px 40px; }
-
+  /* ── 个人资料 ── */
   .profile { flex-direction: column; align-items: center; text-align: center; padding: 20px; gap: 16px; }
   .profile-name { justify-content: center; }
   .actions { justify-content: center; }
@@ -1321,21 +1319,6 @@ body.loading .wrap {
 
   .repo-card { padding: 16px 14px 16px; }
   .sec-tools { margin-left: 0; width: 100%; }
-
-  /* 移动端触摸目标增大（含 1px 边框，保证可点区域 >= 44px） */
-  .track .ringbtn { width: 46px; height: 46px; }
-  .track .ringbtn .rb-ic { width: 20px; height: 20px; }
-  .track .ringbtn .rb-ring { inset: -3px; width: calc(100% + 6px); height: calc(100% + 6px); }
-  .fav-top { padding: 12px 2px; }
-  .fav-name { font-size: 14px; }
-
-  /* 移动端安全区域 */
-  .wrap { padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
-
-  /* 移动端性能优化：减少 blur */
-  .rv { filter: blur(4px); }
-  .rv.rv-in { filter: blur(0); }
-  .rv.rv-in.rv-settled, .rv.rv-settled { filter: none !important; }
 }
 
 /* ── 滚动显现 ───────────────────────────────────

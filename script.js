@@ -385,6 +385,7 @@
     let tx = -9999, ty = -9999;
     function onMove(e) {
       tx = e.clientX; ty = e.clientY; mIn = true;
+      lastMoveAt = performance.now();   // 标记“活跃”，帧率随之升到 60fps
     }
     function onLeave() { mIn = false; tx = -9999; ty = -9999; }
 
@@ -402,25 +403,33 @@
 
     let raf = 0;
     let last = performance.now();
-    // 点阵只是背景装饰：限到 30fps，比 60fps 省将近一半 CPU
-    const FRAME_MS = 1000 / 30;
+    // 自适应帧率：鼠标活跃时 60fps 保证“跟手”，静止时降到 30fps 省 CPU。
+    // 之前固定 30fps + 鼠标缓动 0.18，导致斥力明显滞后。
+    const FRAME_IDLE   = 1000 / 30;
+    const FRAME_ACTIVE = 1000 / 60;
+    const ACTIVE_MS    = 180;   // 最后一次移动后多久内算“活跃”
     let acc = 0;
+    let lastMoveAt = 0;
 
     function frame(now) {
       // 保持 rAF 链连续：时间不够就直接跳过这一帧的重绘，
       // 不做 setTimeout 往返（那会造成每秒几十次多余的唤醒）
       raf = requestAnimationFrame(frame);
 
+      const frameMs = (now - lastMoveAt < ACTIVE_MS) ? FRAME_ACTIVE : FRAME_IDLE;
+
       const dt = Math.min(64, now - last);
       last = now;
       acc += dt;
-      if (acc < FRAME_MS) return;
+      if (acc < frameMs) return;
       acc = 0;
 
       const t = now / 1000;
 
-      mx += (tx - mx) * 0.18;
-      my += (ty - my) * 0.18;
+      // 鼠标位置跟随：系数越大越跟手（0.18 在 30fps 下要 167ms 才跟上 63%，
+      // 是之前“不跟手”的主因；配合 60fps 现在约 4 帧即到位）
+      mx += (tx - mx) * 0.62;
+      my += (ty - my) * 0.62;
       if (!mIn && Math.abs(tx - mx) < 0.5) { mx = tx; my = ty; }
 
       ctx.clearRect(0, 0, W, H);
@@ -443,14 +452,15 @@
             const e = force * force;                  // 平方衰减，边缘更柔和
             const len = PUSH * e;
             // 目标位移量，用缓动跟随，产生“被推开又回弹”的手感
-            p.dx += ((ddx / dist) * len - p.dx) * 0.22;
-            p.dy += ((ddy / dist) * len - p.dy) * 0.22;
+            // 系数从 0.22 提到 0.5，让粒子更快被推到目标位置（更跟手）
+            p.dx += ((ddx / dist) * len - p.dx) * 0.5;
+            p.dy += ((ddy / dist) * len - p.dy) * 0.5;
             boost = e;
           }
         }
         // 缓动回到原位
-        p.dx += (0 - p.dx) * 0.085;
-        p.dy += (0 - p.dy) * 0.085;
+        p.dx += (0 - p.dx) * 0.14;
+        p.dy += (0 - p.dy) * 0.14;
 
         const a = (p.ba * p.d) * (0.45 + 0.55 * wave) * (1 + boost * 0.9);
         if (a <= 0.012) continue;
@@ -495,7 +505,7 @@
       if (raf) { cancelAnimationFrame(raf); raf = 0; }
       clearTimeout(scrollTimer);
       scrollTimer = setTimeout(() => {
-        if (!document.hidden && !raf) { last = performance.now(); acc = FRAME_MS; raf = requestAnimationFrame(frame); }
+        if (!document.hidden && !raf) { last = performance.now(); acc = 0; raf = requestAnimationFrame(frame); }
       }, 140);
     }, { passive: true });
 
@@ -1203,19 +1213,35 @@
       syncTrackWave();
     }
 
-    /* ── 当前曲目的迷你波形 ── */
+    /* ── 当前曲目的迷你波形 ──
+       canvas 引用与尺寸都缓存：尺寸只在「重渲染列表」和「窗口缩放」时才重新测量，
+       播放期间每帧直接复用，避免 querySelector / getBoundingClientRect 强制布局 */
+    let trackCv = null, trackCvW = 0, trackCvH = 0, trackCvDpr = 0;
+
+    function invalidateTrackWave() {
+      trackCv = null;
+      trackCvW = 0;
+      trackCvH = 0;
+    }
+
     function syncTrackWave() {
-      const li = listEl.querySelector('.track.active .track-wave canvas');
-      if (!li) return;
-      const r = li.getBoundingClientRect();
-      if (!r.width) return;
-      // 只在尺寸真的变了才重设位图（重设会清空并重建后备缓冲，很贵）
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const pw = Math.max(1, Math.round(r.width * dpr));
-      const ph = Math.max(1, Math.round(r.height * dpr));
-      if (li.width !== pw || li.height !== ph) { li.width = pw; li.height = ph; }
-      const c = li.getContext('2d');
-      c.setTransform(dpr, 0, 0, dpr, 0, 0);
+      if (!trackCv || !trackCv.isConnected) {
+        trackCv = listEl.querySelector('.track.active .track-wave canvas');
+        trackCvW = 0;
+        if (!trackCv) return;
+      }
+      if (!trackCvW) {
+        const r = trackCv.getBoundingClientRect();
+        if (!r.width) return;
+        trackCvW = r.width;
+        trackCvH = r.height;
+        trackCvDpr = Math.min(window.devicePixelRatio || 1, 2);
+        trackCv.width = Math.max(1, Math.round(r.width * trackCvDpr));
+        trackCv.height = Math.max(1, Math.round(r.height * trackCvDpr));
+      }
+      const r = { width: trackCvW, height: trackCvH };
+      const c = trackCv.getContext('2d');
+      c.setTransform(trackCvDpr, 0, 0, trackCvDpr, 0, 0);
       c.clearRect(0, 0, r.width, r.height);
 
       // 波形待生成时画一条淡条
@@ -1374,6 +1400,8 @@
           '<span class="track-dur">' + fmtTime(t.duration) + '</span>' +
         '</li>';
       }).join('');
+      // 列表 DOM 重建了，迷你波形的 canvas 引用和尺寸缓存全部失效
+      invalidateTrackWave();
     }
 
     /* ── 状态同步：底部条与列表走同一套逻辑，保证完全一致 ── */
@@ -1589,7 +1617,7 @@
     let rt = 0;
     window.addEventListener('resize', () => {
       clearTimeout(rt);
-      rt = setTimeout(() => { sizeCanvas(); drawWave(); syncTrackWave(); }, 140);
+      rt = setTimeout(() => { sizeCanvas(); drawWave(); invalidateTrackWave(); syncTrackWave(); }, 140);
     });
 
     if ('mediaSession' in navigator) {
