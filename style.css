@@ -1122,6 +1122,8 @@ body.loading .wrap {
 @media (max-width: 560px) {
   .fav-card { padding: 16px 14px 14px; }
   .fav-cover { width: 70px; height: 93px; }
+  .fav-top .chev { width: 46px; height: 46px; }
+  .fav-top .chev svg { width: 22px; height: 22px; }
 }
 
 /* ── 底部播放条 ──────────────────────────────── */
@@ -1259,18 +1261,45 @@ body.loading .wrap {
 .wrap { padding-bottom: 92px; }
 
 @media (max-width: 720px) {
-  .dock { gap: 10px; padding: 9px 11px; }
-  .dock-info { width: 120px; }
+  .dock {
+    gap: 10px;
+    padding: 9px 11px;
+    flex-wrap: wrap;
+    border-radius: 16px;
+  }
+  .dock-info { flex: 1; min-width: 0; }
   .dock-info .dock-time { display: none; }
   .track-wave { display: none !important; }
+  .dock-wave { order: 3; flex-basis: 100%; height: 30px; }
+  .dock-ctrl { margin-left: auto; }
 }
 
 @media (max-width: 560px) {
-  .dock { bottom: 10px; width: calc(100% - 20px); border-radius: 12px; }
-  .dock-info { width: 88px; }
-  .dock-wave { height: 34px; }
+  .dock {
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    width: calc(100% - 20px);
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .dock-info { width: auto; }
+  .dock > .ringbtn { width: 44px; height: 44px; }
   .dock-ctrl .ghost:first-child { display: none; }
+  .dock-ctrl .pbtn.ghost { width: 44px; height: 44px; }
   .music-card { padding: 16px 14px 14px; }
+
+  /* 移动端触摸目标增大 */
+  .track-btn { width: 44px; height: 44px; }
+  .track-btn .rb-ic { width: 20px; height: 20px; }
+  .fav-top { padding: 12px 2px; }
+  .fav-name { font-size: 14px; }
+
+  /* 移动端安全区域 */
+  .wrap { padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
+
+  /* 移动端性能优化：减少 blur */
+  .rv { filter: blur(4px); }
+  .rv.rv-in { filter: blur(0); }
+  .rv.rv-in.rv-settled, .rv.rv-settled { filter: none !important; }
 }
 
 /* ── 响应式 ───────────────────────────────── */
@@ -1292,6 +1321,21 @@ body.loading .wrap {
 
   .repo-card { padding: 16px 14px 16px; }
   .sec-tools { margin-left: 0; width: 100%; }
+
+  /* 移动端触摸目标增大（含 1px 边框，保证可点区域 >= 44px） */
+  .track .ringbtn { width: 46px; height: 46px; }
+  .track .ringbtn .rb-ic { width: 20px; height: 20px; }
+  .track .ringbtn .rb-ring { inset: -3px; width: calc(100% + 6px); height: calc(100% + 6px); }
+  .fav-top { padding: 12px 2px; }
+  .fav-name { font-size: 14px; }
+
+  /* 移动端安全区域 */
+  .wrap { padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px)); }
+
+  /* 移动端性能优化：减少 blur */
+  .rv { filter: blur(4px); }
+  .rv.rv-in { filter: blur(0); }
+  .rv.rv-in.rv-settled, .rv.rv-settled { filter: none !important; }
 }
 
 /* ── 滚动显现 ───────────────────────────────────

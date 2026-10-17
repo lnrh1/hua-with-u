@@ -324,12 +324,15 @@
     const reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     const GAP    = 27;     // 点阵间距（调大以减少粒子数）
+    const IS_MOBILE = matchMedia('(max-width: 720px)').matches;
+    const MOBILE_GAP = 40;   // 移动端间距更大，粒子更少
     const R      = 1.5;    // 点的基准半径
     const RADIUS = 132;    // 斥力影响半径
     const PUSH   = 26;     // 最大排开距离
     const BASE   = { r: 37, g: 99, b: 235 };
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // 移动端 DPR 上限更低，减少 canvas 像素数
+    const dpr = Math.min(window.devicePixelRatio || 1, IS_MOBILE ? 1.5 : 2);
     let W = 0, H = 0, cols = 0, rows = 0;
     let parts = [];
     let mx = -9999, my = -9999, mIn = false;
@@ -343,17 +346,18 @@
       canvas.style.height = H + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      cols = Math.floor(W / GAP) + 2;
-      rows = Math.floor(H / GAP) + 2;
-      const ox = (W - (cols - 1) * GAP) / 2;
-      const oy = (H - (rows - 1) * GAP) / 2;
+      const gap = IS_MOBILE ? MOBILE_GAP : GAP;
+      cols = Math.floor(W / gap) + 2;
+      rows = Math.floor(H / gap) + 2;
+      const ox = (W - (cols - 1) * gap) / 2;
+      const oy = (H - (rows - 1) * gap) / 2;
 
       parts = [];
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           parts.push({
-            x: ox + c * GAP,
-            y: oy + r * GAP,
+            x: ox + c * gap,
+            y: oy + r * gap,
             // 每个粒子独立的呼吸频率与相位 → 状态各不相同（频率已调快）
             ph: Math.random() * Math.PI * 2,
             sp: 1.05 + Math.random() * 1.9,
@@ -1809,31 +1813,36 @@
 
     document.body.classList.add('loading');
     loadProgress(12);
+
+    // 并行初始化所有模块（点阵、头像、弹窗、控制、播放器、追番、显现）
     initDots();
     hookAvatar();
     setupModal('emailBtn', 'emailModal');
     setupModal('biliBtn', 'biliModal');
     setupCopyEmail();
     setupControls();
-    initPlayer();
+    initPlayer();          // 只初始化 UI，不预加载音乐
     initFavorites();
     initReveal();
 
     // 兜底：不管发生什么，加载动画都不会一直卡住
     const failsafe = setTimeout(() => hideLoader(), LOADER_MAX);
 
-    await loadRepos(false);
-    loadProgress(58);
-
-    // 账号信息并行使总览数字完整（失败也不影响仓库列表）
+    // 并行加载所有数据（仓库、用户信息），不阻塞 loader 消失
+    const reposPromise = loadRepos(false);
     const userPromise = getUser()
       .then((u) => { state.user = u; renderStats(); applyAvatar(u); })
       .catch(() => {});
 
-    await Promise.all([userPromise, waitAvatar(1500)]);
+    // loader 只等最短时间，内容加载在后台继续
+    const avatarReady = waitAvatar(1500);
+    await Promise.all([userPromise, avatarReady]);
     loadProgress(92);
     clearTimeout(failsafe);
     hideLoader();
+
+    // 仓库列表在后台加载完成后更新（不阻塞用户看页面）
+    await reposPromise;
   }
 
   if (document.readyState === 'loading') {
