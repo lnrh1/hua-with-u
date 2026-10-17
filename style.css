@@ -1,8 +1,3 @@
-/* ============================================================
-   令你入画 · 个人主页
-   设计语言参考 lnrh1/model-scout：扁平、浅色、单一蓝色强调色
-   ============================================================ */
-
 :root {
   --bg:       #f6f7f9;
   --card:     #ffffff;
@@ -22,7 +17,7 @@
   --mono: ui-monospace, "Cascadia Mono", Consolas, "Courier New", monospace;
   --shadow: 0 1px 2px rgba(15, 23, 42, .04);
   --dot: rgba(37, 99, 235, .26);
-  color-scheme: light;   /* 只保留明主题 */
+  color-scheme: light;
 }
 
 * { box-sizing: border-box; margin: 0; }
@@ -372,7 +367,7 @@ body.loading .wrap {
 .stat .k { margin-top: 2px; font-size: 11.5px; color: var(--fg-3); }
 
 /* ── 区块标题 / 工具条 ──────────────────────── */
-.repo-card { padding: 18px 20px 18px; }
+.repo-card { padding: 18px 20px 18px; margin-bottom: 12px; }
 
 .sec-head {
   display: flex;
