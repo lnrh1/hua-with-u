@@ -899,9 +899,9 @@ window.__MUSIC__ = [
  },
  {
   "file": "Твій промінь.mp3",
-  "artist": "未知艺人",
+  "artist": "SadSvit",
   "title": "Твій промінь",
-  "cn": "",
+  "cn": "你的光",
   "duration": 153.09,
   "peaks": [
    0.16,
