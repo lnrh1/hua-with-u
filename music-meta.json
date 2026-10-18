@@ -4,5 +4,6 @@
  "Луги.mp3":           { "artist": "SadSvit/Do Sliz", "title": "Луги",        "cn": "草地" },
  "Небо.mp3":           { "artist": "SadSvit",         "title": "Небо",        "cn": "天空" },
  "Приятные Сны.mp3":   { "artist": "Corn Wave",       "title": "Приятные",    "cn": "愉快的梦" },
- "生活倒影.mp3":        { "artist": "苏运莹",          "title": "生活倒影",     "cn": "" }
+ "生活倒影.mp3":       { "artist": "苏运莹",          "title": "生活倒影",     "cn": "" },
+ "Твій промінь.mp3":   {"artist": "SadSvit",          "title": "Твій промінь","cn":"你的光"}
 }
