@@ -1,11 +1,11 @@
 /* 追番 · 追剧数据 —— 由 tools/update-bangumi.mjs 自动生成，请勿手改
- * 生成时间：2026-10-18T07:03:35.245Z
+ * 生成时间：2026-10-19T07:27:13.634Z
  * 共 9 条（番剧 3，
  *   影视 6）
  */
 window.__BANGUMI__ = {
  "mid": "3546386161207782",
- "updated": "2026-10-18T07:03:35.245Z",
+ "updated": "2026-10-19T07:27:13.634Z",
  "items": [
   {
    "title": "不时用俄语小声说真心话的邻桌艾莉同学",
@@ -44,6 +44,18 @@ window.__BANGUMI__ = {
    "summary": "某个地方有一位旅人，她的名字是伊蕾娜。 是一位年纪轻轻就成了魔法使中最上位「魔女」的天才。 因为向往着幼时读过的旅行故事"
   },
   {
+   "title": "游弋在风暴之中",
+   "group": "影视",
+   "kind": "纪录片",
+   "cover": "https://i0.hdslb.com/bfs/bangumi/image/171a34185c509e91cfb8e715359cdedcb9303d3f.png",
+   "url": "https://www.bilibili.com/bangumi/play/ss110089?theme=movie",
+   "status": "在看",
+   "ep": "全1集",
+   "score": 9.9,
+   "badge": "",
+   "summary": "由up主风羽酱-sdk制作的《游弋在风暴之中》是国内首部聚焦气象领域的长篇参与式纪录片，台风、雷暴、龙卷这些风暴是大气运"
+  },
+  {
    "title": "宇宙探索编辑部",
    "group": "影视",
    "kind": "电影",
@@ -78,18 +90,6 @@ window.__BANGUMI__ = {
    "score": 9.8,
    "badge": "大会员",
    "summary": "为了给最疼爱的小老弟菜鸟（克里斯多夫·奈茨 Christopher Knights 配音）庆生，老大（汤姆·麦格拉思 T"
-  },
-  {
-   "title": "游弋在风暴之中",
-   "group": "影视",
-   "kind": "纪录片",
-   "cover": "https://i0.hdslb.com/bfs/bangumi/image/171a34185c509e91cfb8e715359cdedcb9303d3f.png",
-   "url": "https://www.bilibili.com/bangumi/play/ss110089?theme=movie",
-   "status": "在看",
-   "ep": "全1集",
-   "score": 9.9,
-   "badge": "",
-   "summary": "由up主风羽酱-sdk制作的《游弋在风暴之中》是国内首部聚焦气象领域的长篇参与式纪录片，台风、雷暴、龙卷这些风暴是大气运"
   },
   {
    "title": "环太平洋",
