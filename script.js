@@ -76,6 +76,110 @@
     return String(n);
   }
 
+  /* ── 分页组件 ──────────────────────────────────────────
+     仓库 / 歌单 / 追番 / 追剧 四个列表共用同一套翻页逻辑：
+     一页最多 PAGE_SIZE 项，条目总数不超过 PAGE_SIZE 时整条翻页栏不出现。 */
+  const PAGE_SIZE = 5;
+
+  /**
+   * 创建一个翻页器
+   * @param {HTMLElement|null} host  翻页按钮的容器
+   * @param {function(number):void} onPage  页码变化回调（参数为从 0 开始的页码）
+   */
+  function createPager(host, onPage) {
+    let total = 0;
+    let page = 0;
+
+    const pageCount = () => Math.max(1, Math.ceil(total / PAGE_SIZE));
+
+    function numBtn(i) {
+      return '<button class="pgr-btn' + (i === page ? ' on' : '') + '" type="button"' +
+        ' data-p="' + i + '"' + (i === page ? ' aria-current="page"' : '') +
+        ' aria-label="第 ' + (i + 1) + ' 页">' + (i + 1) + '</button>';
+    }
+
+    /** 页码按钮：页数不多时全部列出，太多时只留当前页附近的几页 */
+    function pageButtons() {
+      const n = pageCount();
+      const MAX_BTN = 7;
+      if (n <= MAX_BTN) {
+        const out = [];
+        for (let i = 0; i < n; i++) out.push(numBtn(i));
+        return out.join('');
+      }
+      const out = [numBtn(0)];
+      const from = Math.max(1, page - 2);
+      const to = Math.min(n - 2, page + 2);
+      if (from > 1) out.push('<span class="pgr-gap">…</span>');
+      for (let i = from; i <= to; i++) out.push(numBtn(i));
+      if (to < n - 1) out.push('<span class="pgr-gap">…</span>');
+      out.push(numBtn(n - 1));
+      return out.join('');
+    }
+
+    function render() {
+      if (!host) return;
+      // 条目不够一页就不显示翻页栏
+      if (total <= PAGE_SIZE) {
+        host.innerHTML = '';
+        host.hidden = true;
+        return;
+      }
+      const n = pageCount();
+      if (page > n - 1) page = n - 1;
+      host.hidden = false;
+      host.innerHTML =
+        '<button class="pgr-btn pgr-step" type="button" data-p="' + (page - 1) + '"' +
+          (page === 0 ? ' disabled' : '') + ' aria-label="上一页">‹</button>' +
+        pageButtons() +
+        '<button class="pgr-btn pgr-step" type="button" data-p="' + (page + 1) + '"' +
+          (page >= n - 1 ? ' disabled' : '') + ' aria-label="下一页">›</button>' +
+        '<span class="pgr-info">第 ' + (page + 1) + ' / ' + n + ' 页</span>';
+    }
+
+    function go(p) {
+      const next = Math.min(Math.max(p, 0), pageCount() - 1);
+      if (next === page) return;
+      page = next;
+      if (onPage) onPage(page);
+      render();
+    }
+
+    if (host) {
+      host.addEventListener('click', (e) => {
+        const b = e.target.closest('button[data-p]');
+        if (!b || b.disabled) return;
+        go(+b.dataset.p);
+      });
+    }
+
+    return {
+      /** 总条目数变化时更新；页码越界会被自动收回 */
+      setTotal(n) {
+        total = Math.max(0, n | 0);
+        if (page > pageCount() - 1) page = pageCount() - 1;
+        render();
+      },
+      /** 回到第一页并重新渲染列表 */
+      reset() {
+        page = 0;
+        if (onPage) onPage(page);
+        render();
+      },
+      /** 只改页码不触发回调（供“正在播放的曲目”定位用） */
+      setPage(p) {
+        const next = Math.min(Math.max(p, 0), pageCount() - 1);
+        if (next === page) return false;
+        page = next;
+        render();
+        return true;
+      },
+      get page() { return page; },
+      get total() { return total; },
+      render
+    };
+  }
+
   function ago(iso) {
     const t = Date.parse(iso);
     if (!t) return '—';
@@ -512,6 +616,7 @@
   const charts = new Map();   // full_name -> { series }
 
   const grid = document.getElementById('repoGrid');
+  const repoPager = createPager(document.getElementById('repoPager'), () => layout());
 
   /* ── 仓库列表 ────────────────────────────────────────── */
   function visibleRepos() {
@@ -574,17 +679,23 @@
   }
 
   function layout() {
-    const want = visibleRepos();
+    const all = visibleRepos();
 
-    if (!want.length) {
+    if (!all.length) {
       for (const el of cards.values()) el.remove();
       grid.innerHTML = '<p class="empty">没有可显示的仓库' +
         (state.repos.length ? '（试试取消勾选“隐藏 fork”）。' : '。') + '</p>';
+      repoPager.setTotal(0);
       return;
     }
 
     const placeholder = grid.querySelector('.empty, .err-box');
     if (placeholder) placeholder.remove();
+
+    // 翻页：一页最多 PAGE_SIZE 个仓库
+    repoPager.setTotal(all.length);
+    const start = repoPager.page * PAGE_SIZE;
+    const want = all.slice(start, start + PAGE_SIZE);
 
     for (const r of want) {
       let el = cards.get(r.full_name);
@@ -1085,6 +1196,12 @@
       hint: document.getElementById('pHint')
     };
 
+    // 歌单翻页器：切页时重画列表
+    const musicPager = createPager(document.getElementById('musicPager'), () => {
+      renderList();
+      syncTrackWave();
+    });
+
     const audio = new Audio();
     audio.preload = 'none';            // 永不主动下载音频
 
@@ -1375,7 +1492,13 @@
     }
 
     function renderList() {
-      listEl.innerHTML = tracks.map((t, i) => {
+      // 翻页：一页最多 PAGE_SIZE 首，data-i 仍用全局下标，
+      // 这样播放逻辑（start(i) / updateRowDuration(i)）完全不用改
+      const start = musicPager.page * PAGE_SIZE;
+      const view = tracks.slice(start, start + PAGE_SIZE);
+
+      listEl.innerHTML = view.map((t, k) => {
+        const i = start + k;
         const on = i === idx;
         return '<li class="track' + (on ? ' active' : '') + '" data-i="' + i + '">' +
           '<span class="track-idx">' + String(i + 1).padStart(2, '0') + '</span>' +
@@ -1457,6 +1580,8 @@
       const t = tracks[i];
       peaks = t.peaks || [];
       setDockTitle(t);
+      // 切到该曲目所在的一页，保证「正在播放的那首」始终在列表里可见
+      musicPager.setPage(Math.floor(i / PAGE_SIZE));
       renderList();
       el.dur.textContent = fmtTime(t.duration);
       el.cur.textContent = '0:00';
@@ -1629,6 +1754,7 @@
         }
         return;
       }
+      musicPager.setTotal(tracks.length);
       renderList();
       if (el.count) {
         const tot = tracks.reduce((s, t) => s + (t.duration || 0), 0);
@@ -1701,11 +1827,25 @@
       '</li>';
     };
 
+    /** 渲染某个分组当前页的条目（翻页时只重画这一段） */
+    function renderGroup(g, list) {
+      const pager = g.pager;
+      const start = pager ? pager.page * PAGE_SIZE : 0;
+      const view = list.slice(start, start + PAGE_SIZE);
+      g.list.innerHTML = view.map((x, k) => itemHTML(x, g.list.id + '-' + (start + k))).join('');
+    }
+
     let totalShown = 0;
 
     for (const g of groups) {
       if (!g.list) continue;
       const list = items.filter(g.match);
+
+      // 翻页器：追番与追剧各自一份，一页最多 PAGE_SIZE 条
+      const pager = createPager(document.getElementById(g.list.id + 'Pager'), () => {
+        renderGroup(g, list);
+      });
+      g.pager = pager;
 
       if (!list.length) {
         if (g.hint) {
@@ -1718,7 +1858,8 @@
       }
 
       totalShown += list.length;
-      g.list.innerHTML = list.map((x, i) => itemHTML(x, g.list.id + '-' + i)).join('');
+      pager.setTotal(list.length);
+      renderGroup(g, list);
 
       if (g.count) g.count.textContent = list.length + ' ' + g.label;
 
