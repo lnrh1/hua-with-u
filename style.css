@@ -968,15 +968,12 @@ body.loading .wrap {
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
+  /* 底部分隔线与条目之间的分隔线保持同样的间距（12px + 12px = 24px），
+     最后一条到底部横线的距离和条目之间一致，视觉上完全对称。
+     也没有翻页按钮时，这一行不占额外位置 */
   margin-top: 12px;
-  padding-top: 11px;
+  padding-top: 12px;
   border-top: 1px solid var(--line);
-  /* 预留固定高度：有没有翻页按钮，底部留白都一模一样，
-     视觉上不会忽高忽低。
-     box-sizing: border-box —— 否则 padding-top 会在 min-height 之外再加一遍，
-     导致「有翻页」和「没翻页」两种状态高度对不上 */
-  min-height: 42px;
-  box-sizing: border-box;
 }
 
 .list-foot .music-hint,
@@ -1039,10 +1036,14 @@ body.loading .wrap {
 .fav-list { list-style: none; margin: 0; padding: 0; }
 
 .fav {
+  /* 分隔线画在每项的【上】边缘，但用负 margin 把它拉到上一项的内容底部，
+     这样「上一项文字 → 分隔线 → 下一项文字」三段距离是均等的，
+     不会出现「最后一条下面比上面几条空得多」 */
   border-top: 1px solid var(--line);
+  margin-top: -1px;
 }
 
-.fav:first-child { border-top: 0; }
+.fav:first-child { border-top: 0; margin-top: 0; }
 
 /* 折叠头：默认只露名字 + 折叠符号 */
 .fav-top {

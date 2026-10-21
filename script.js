@@ -990,11 +990,21 @@
       let done = false;
       const finish = () => { if (done) return; done = true; resolve(); };
       avatarWaiters.push(finish);
-      setTimeout(finish, cap || 4000);
+      // 到点后如果图片还在加载，【不能】就此放行 —— 否则加载动画会先结束、
+      // 头像再姗姗来迟。改成继续等到图片真的有结果为止。
+      const capTimer = setTimeout(() => {
+        if (img.complete) { finish(); return; }
+        // 还在加载：加一个兜底上限，避免网络彻底挂掉时页面永远卡在加载动画
+        setTimeout(finish, 8000);
+      }, cap || 4000);
+      // 图片有结果时清掉计时器
+      img.addEventListener('load', () => { clearTimeout(capTimer); finish(); }, { once: true });
+      img.addEventListener('error', () => { clearTimeout(capTimer); finish(); }, { once: true });
     });
   }
 
-  /* ── 头像：优先用页面写死的图，失败时退到 GitHub 头像，再失败则露出占位 ── */
+  /* ── 头像：优先用仓库里的本地图（稳定、零延迟），
+       失败时退到 GitHub 头像，再失败则露出占位 ── */
   let avatarUrl = '';
 
   function applyAvatarFallback() {
@@ -1024,7 +1034,7 @@
     if (!img) { settleAvatar(); return; }
     if (img.dataset.hooked === '1') return;
     img.dataset.hooked = '1';
-    // 主图加载成功 -> 头像定了
+    // 主图加载成功 -> 头像定了（这时图片已经有内容，不会再跳）
     img.addEventListener('load', () => {
       img.dataset.loaded = '1';
       settleAvatar();
