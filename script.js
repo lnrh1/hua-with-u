@@ -24,7 +24,8 @@
   const LANG_SEGMENTS   = 4;             // 单仓库语言条最多几段，其余合并为“其他”
 
   const LOADER_MIN   = 900;              // 加载动画最短显示时长，避免一闪而过
-  const LOADER_MAX   = 9000;             // 兜底：无论成功失败都不会一直卡住
+  const LOADER_MAX   = 15000;            // 兜底：无论成功失败都不会一直卡住
+  const AVATAR_CAP   = 6000;             // 头像最多等这么久（超时就用兜底头像，不无限等）
 
   /* ── 小工具 ──────────────────────────────────────────── */
   const ICON = {
@@ -967,17 +968,28 @@
     }, wait);
   }
 
-  /** 等头像图片有结果（成功或失败），最多等 cap 毫秒 */
+  /* ── 头像加载状态 ──────────────────────────────────────
+     头像的地址有两级：页面写死的图 → GitHub 头像 → 占位符。
+     加载动画要等「彻底有结果」才结束，否则会出现头像后到、内容跳一下的情况。 */
+  let avatarSettled = false;
+  const avatarWaiters = [];
+
+  /** 头像已彻底定下来（显示成功 / 确认没有可用地址），唤醒所有等待者 */
+  function settleAvatar() {
+    if (avatarSettled) return;
+    avatarSettled = true;
+    while (avatarWaiters.length) avatarWaiters.shift()();
+  }
+
+  /** 等头像彻底定下来，最多等 cap 毫秒 */
   function waitAvatar(cap) {
     const img = document.getElementById('avatar');
-    if (!img || (img.complete && (img.naturalWidth > 0 || img.dataset.failed === '1'))) {
-      return Promise.resolve();
-    }
+    if (!img) return Promise.resolve();
+    if (img.complete && img.naturalWidth > 0) { settleAvatar(); return Promise.resolve(); }
     return new Promise((resolve) => {
       let done = false;
       const finish = () => { if (done) return; done = true; resolve(); };
-      img.addEventListener('load', finish, { once: true });
-      img.addEventListener('error', finish, { once: true });
+      avatarWaiters.push(finish);
       setTimeout(finish, cap || 4000);
     });
   }
@@ -987,32 +999,57 @@
 
   function applyAvatarFallback() {
     const img = document.getElementById('avatar');
-    if (!img) return;
+    if (!img) { settleAvatar(); return; }
     img.dataset.failed = '1';
     if (avatarUrl && img.dataset.fallback !== '1') {
       img.dataset.fallback = '1';      // 只换一次，避免两个地址都挂时来回切
       img.style.display = '';
       img.src = avatarUrl;
+      // 换地址后还要等新地址的结果：
+      // load 事件由 hookAvatar 里的监听器负责 settle，
+      // 若新地址也失败，error 会再次进来，那时 fallback 标记已置位，会走下面的兜底分支
+    } else if (img.dataset.fallback === '1') {
+      img.style.display = 'none';      // 主图和 GitHub 头像都挂了：露出背后的 “画” 占位
+      settleAvatar();
     } else {
-      img.style.display = 'none';      // 都不可用：露出背后的 “画” 占位
+      // 主图挂了，但 GitHub 头像地址还没拿到（用户信息还在请求中）。
+      // 这里先隐藏占位，但【不能】 settle —— 否则加载动画会提前结束，
+      // 头像也就永远停在空白状态了。等 applyAvatar 拿到地址后会再来换图。
+      img.style.display = 'none';
     }
   }
 
   function hookAvatar() {
     const img = document.getElementById('avatar');
-    if (!img || img.dataset.hooked === '1') return;
+    if (!img) { settleAvatar(); return; }
+    if (img.dataset.hooked === '1') return;
     img.dataset.hooked = '1';
+    // 主图加载成功 -> 头像定了
+    img.addEventListener('load', () => {
+      img.dataset.loaded = '1';
+      settleAvatar();
+    });
+    // 主图失败 -> 换成 GitHub 头像；GitHub 头像也失败就露出占位
     img.addEventListener('error', applyAvatarFallback);
-    // 图片可能在脚本执行前就已经失败了，这里补一次判断
-    if (img.complete && img.naturalWidth === 0) applyAvatarFallback();
+    // 图片可能在脚本执行前就已经有结果了，这里补一次判断
+    if (img.complete) {
+      if (img.naturalWidth > 0) { img.dataset.loaded = '1'; settleAvatar(); }
+      else applyAvatarFallback();
+    }
   }
 
   function applyAvatar(u) {
-    if (!u || !u.avatar_url) return;
-    avatarUrl = u.avatar_url;
     const img = document.getElementById('avatar');
-    // 之前因为拿不到备用地址而隐藏了，现在补上
-    if (img && img.dataset.failed === '1' && img.dataset.fallback !== '1') applyAvatarFallback();
+    // 拿不到备用地址：如果主图也已经挂了，就到此为止，露出占位
+    if (!u || !u.avatar_url) {
+      if (img && img.dataset.failed === '1') settleAvatar();
+      return;
+    }
+    avatarUrl = u.avatar_url;
+    // 主图之前就挂了（当时还没拿到备用地址）：现在换到 GitHub 头像
+    if (img && img.dataset.failed === '1' && img.dataset.fallback !== '1') {
+      applyAvatarFallback();
+    }
   }
 
   /* ── 弹窗 ────────────────────────────────────────────── */
@@ -1136,6 +1173,7 @@
         charts.clear();
         state.repos = [];
         await loadRepos(true);
+        await loadLanguages();
         refresh.disabled = false;
       });
     }
@@ -1159,7 +1197,7 @@
       state.repos = repos;
       layout();
       renderStats();
-      loadLanguages();          // 语言构成不阻塞仓库列表渲染
+      // 语言构成由调用方（boot / 刷新按钮）单独 await，这里不阻塞仓库列表渲染
     } catch (e) {
       grid.innerHTML = errBox(e, '获取仓库列表失败');
       const btn = grid.querySelector('[data-retry]');
@@ -1863,12 +1901,7 @@
 
       if (g.count) g.count.textContent = list.length + ' ' + g.label;
 
-      if (g.hint) {
-        g.hint.textContent = data.updated
-          ? '数据更新于 ' + new Date(data.updated).toLocaleDateString('zh-CN') +
-            ' · 点右侧折叠符号查看封面与简介'
-          : '点右侧折叠符号查看封面与简介';
-      }
+      // 底部提示语已按需求去掉，这里保持为空（空元素不占位）
 
       // 折叠交互（每个列表各自绑定）
       g.list.addEventListener('click', (e) => {
@@ -1906,31 +1939,33 @@
       for (const en of entries) {
         const el = en.target;
 
-        if (en.isIntersecting) {
+        // 用 intersectionRatio 判断，而不是 isIntersecting：
+        // isIntersecting 只对「触发本次回调的那个阈值」成立，
+        // 元素擦着阈值线时它会突然变成 false，导致明明在视口里却被重置成透明 —— 这就是抽搐的根源。
+        if (en.intersectionRatio > 0) {
+          // 进入视口：显现
           el.classList.remove('rv-out-up');
           el.classList.add('rv-in');
           el.dataset.rvSeen = '1';
+          // 重新安排收尾：滚回来后要再次卸掉 filter / will-change
           scheduleSettle(el);
         } else {
           const r = el.getBoundingClientRect();
           const above = r.bottom <= 0;      // 整体跑到视口上方 = 往上滚出
 
-          if (above) {
-            // 往上滚出：反向退场（往上移出 + 变模糊）
+          if (above && el.dataset.rvSeen === '1') {
+            // 往上滚出：轻微后退（往上移一点 + 变淡）
+            // 注意不摘掉 rv-in：保持已显现状态，来回滚动时不会反复淡入淡出
             el.classList.remove('rv-settled');
-            el.classList.remove('rv-in');
             el.classList.add('rv-out-up');
-          } else {
-            // 向下滚出视口底部：清掉退场标记，等下次进入时正常淡入
-            el.classList.remove('rv-out-up');
-            el.classList.remove('rv-settled');
-            el.classList.remove('rv-in');
           }
+          // 向下滚出视口底部：什么都不做。
+          // 一旦显现过就保持显现，否则上下滚动时元素会反复淡出/淡入，看起来像抽搐。
         }
       }
     }, {
       rootMargin: '-6% 0px -6% 0px',
-      threshold: [0, 0.08, 0.5, 1]
+      threshold: 0
     });
 
     // 入场动画播完就撤掉 filter / will-change，让元素回到普通图层，
@@ -1986,21 +2021,26 @@
     // 兜底：不管发生什么，加载动画都不会一直卡住
     const failsafe = setTimeout(() => hideLoader(), LOADER_MAX);
 
-    // 并行加载所有数据（仓库、用户信息），不阻塞 loader 消失
+    // 并行加载所有数据
     const reposPromise = loadRepos(false);
     const userPromise = getUser()
       .then((u) => { state.user = u; renderStats(); applyAvatar(u); })
+      .catch(() => { settleAvatar(); });
+    const avatarReady = waitAvatar(AVATAR_CAP);
+
+    // 仓库列表加载完，才知道要拉哪些仓库的语言构成
+    const langsPromise = reposPromise
+      .then(() => loadLanguages())
       .catch(() => {});
 
-    // loader 只等最短时间，内容加载在后台继续
-    const avatarReady = waitAvatar(1500);
-    await Promise.all([userPromise, avatarReady]);
+    // 等这些都好了才收加载动画：
+    // 仓库列表、用户信息（头像来源）、头像图片本身、语言构成。
+    // 音乐不在其中 —— 音频要等用户点播放才下载。
+    loadProgress(35);
+    await Promise.all([reposPromise, userPromise, avatarReady, langsPromise]);
     loadProgress(92);
     clearTimeout(failsafe);
     hideLoader();
-
-    // 仓库列表在后台加载完成后更新（不阻塞用户看页面）
-    await reposPromise;
   }
 
   if (document.readyState === 'loading') {

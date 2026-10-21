@@ -957,15 +957,40 @@ body.loading .wrap {
 .track.active .track-wave { display: block; }
 .track-wave canvas { display: block; width: 100%; height: 100%; }
 
-.music-hint {
+.sec-note { font-size: 11.5px; color: var(--fg-3); }
+
+/* ── 列表底部收口 ──────────────────────────────────
+   提示语与翻页条共用同一行（.list-foot），
+   这样加翻页按钮不会把整块内容往下撑高，视觉上保持平衡 */
+.list-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
   margin-top: 12px;
   padding-top: 11px;
   border-top: 1px solid var(--line);
-  font-size: 11.5px;
-  color: var(--fg-3);
+  /* 预留固定高度：有没有翻页按钮，底部留白都一模一样，
+     视觉上不会忽高忽低。
+     box-sizing: border-box —— 否则 padding-top 会在 min-height 之外再加一遍，
+     导致「有翻页」和「没翻页」两种状态高度对不上 */
+  min-height: 42px;
+  box-sizing: border-box;
 }
 
-.sec-note { font-size: 11.5px; color: var(--fg-3); }
+.list-foot .music-hint,
+.list-foot .fav-hint {
+  margin: 0;
+  padding: 0;
+  border-top: 0;
+  font-size: 11.5px;
+  color: var(--fg-3);
+  min-width: 0;
+}
+
+/* 没有内容可提示时整行不占位，翻页条自然靠右 */
+.list-foot .fav-hint:empty { display: none; }
 
 /* ── 翻页条 ───────────────────────────────────
    仓库 / 歌单 / 追番 / 追剧 共用；条目不足一页时整条隐藏 */
@@ -975,10 +1000,15 @@ body.loading .wrap {
   justify-content: center;
   flex-wrap: wrap;
   gap: 6px;
-  margin-top: 14px;
+  /* 在 .list-foot 里时不需要额外的上边距 */
+  margin-top: 0;
 }
 
 .pager[hidden] { display: none; }
+
+/* 独立使用（不在 .list-foot 里）时给一点上边距 */
+.pager:not([hidden]) { margin-top: 14px; }
+.list-foot .pager:not([hidden]) { margin-top: 0; }
 
 .pgr-btn {
   min-width: 30px;
@@ -1142,14 +1172,6 @@ body.loading .wrap {
 }
 
 .fav-link:hover { color: var(--acc); border-bottom-color: var(--acc-line); }
-
-.fav-hint {
-  margin-top: 12px;
-  padding-top: 11px;
-  border-top: 1px solid var(--line);
-  font-size: 11.5px;
-  color: var(--fg-3);
-}
 
 /* ── 底部播放条 ──────────────────────────────── */
 .dock {
@@ -1377,6 +1399,15 @@ body.loading .wrap {
   filter: blur(0);
 }
 
+/* 往上滚出视口（元素整体跑到视口上方）：
+   保持可见，只轻微上移 + 变淡。
+   这里必须同时带上 .rv-in，否则会和上面的 transform:none 打架造成来回跳 */
+.rv.rv-in.rv-out-up {
+  transform: translate3d(0, -16px, 0) scale(.99);
+  opacity: .6;
+  filter: blur(2px);
+}
+
 /* 动画结束：去掉 will-change 与 filter，回到普通层，滚动更顺。
    同时把 transition 归零，否则 filter:none 还要再跑一次 0.58s 才真正生效 */
 .rv.rv-in.rv-settled,
@@ -1384,11 +1415,6 @@ body.loading .wrap {
   filter: none !important;
   will-change: auto !important;
   transition: none !important;
-}
-
-/* 往上滚出（元素跑到视口上方）→ 反向：往上移出 */
-.rv.rv-out-up:not(.rv-in) {
-  transform: translate3d(0, -34px, 0) scale(.985);
 }
 
 /* 尊重系统的减少动效设置：直接显示，不做位移与模糊 */
