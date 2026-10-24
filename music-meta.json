@@ -1,9 +1,12 @@
 {
- "evening.mp3":        { "artist": "Corn Wave",       "title": "evening",     "cn": "夜晚" },
- "skype calls.mp3":    { "artist": "Corn Wave",       "title": "skype calls", "cn": "" },
- "Луги.mp3":           { "artist": "SadSvit/Do Sliz", "title": "Луги",        "cn": "草地" },
- "Небо.mp3":           { "artist": "SadSvit",         "title": "Небо",        "cn": "天空" },
- "Приятные Сны.mp3":   { "artist": "Corn Wave",       "title": "Приятные",    "cn": "愉快的梦" },
- "生活倒影.mp3":       { "artist": "苏运莹",          "title": "生活倒影",     "cn": "" },
- "Твій промінь.mp3":   {"artist": "SadSvit",          "title": "Твій промінь","cn":"你的光"}
+  "生活倒影.mp3":          { "artist": "苏运莹",               "title": "生活倒影",          "cn": "" },
+  "evening.mp3":           { "artist": "Corn Wave",            "title": "evening",           "cn": "夜晚" },
+  "skype calls.mp3":       { "artist": "Corn Wave",            "title": "skype calls",       "cn": "" },
+  "Красива.mp3":           { "artist": "Перемотка",            "title": "Красива",           "cn": "美" },
+  "Луги.mp3":              { "artist": "SadSvit/Do Sliz",      "title": "Луги",              "cn": "草地" },
+  "Небо.mp3":              { "artist": "SadSvit",              "title": "Небо",              "cn": "天空" },
+  "Поважнее.mp3":          { "artist": "Пятница_Дела",         "title": "Поважнее",          "cn": "星期五" },
+  "Приятные Сны.mp3":      { "artist": "Corn Wave",            "title": "Приятные",          "cn": "愉快的梦" },
+  "Спектакль окончен.mp3": { "artist": "Chernikovskaya Hata",  "title": "Спектакль окончен", "cn": "这出戏结束了" },
+  "Твій промінь.mp3":      { "artist": "SadSvit",              "title": "Твій промінь",      "cn": "你的光" }
 }
