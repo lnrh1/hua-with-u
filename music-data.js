@@ -452,9 +452,9 @@ window.__MUSIC__ = [
  },
  {
   "file": "Красива.mp3",
-  "artist": "未知艺人",
+  "artist": "Перемотка",
   "title": "Красива",
-  "cn": "",
+  "cn": "美",
   "duration": 193.56,
   "peaks": [
    0.322,
@@ -899,9 +899,9 @@ window.__MUSIC__ = [
  },
  {
   "file": "Поважнее.mp3",
-  "artist": "未知艺人",
+  "artist": "Пятница_Дела",
   "title": "Поважнее",
-  "cn": "",
+  "cn": "星期五",
   "duration": 221.68,
   "peaks": [
    0.572,
@@ -1197,9 +1197,9 @@ window.__MUSIC__ = [
  },
  {
   "file": "Спектакль окончен.mp3",
-  "artist": "未知艺人",
+  "artist": "Chernikovskaya Hata",
   "title": "Спектакль окончен",
-  "cn": "",
+  "cn": "这出戏结束了",
   "duration": 188.59,
   "peaks": [
    0.561,
