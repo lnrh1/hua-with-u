@@ -1,24 +1,12 @@
 /* 追番 · 追剧数据 —— 由 tools/update-bangumi.mjs 自动生成，请勿手改
- * 生成时间：2026-11-18T09:52:53.222Z
+ * 生成时间：2026-11-19T09:59:18.261Z
  * 共 9 条（番剧 3，
  *   影视 6）
  */
 window.__BANGUMI__ = {
  "mid": "3546386161207782",
- "updated": "2026-11-18T09:52:53.222Z",
+ "updated": "2026-11-19T09:59:18.261Z",
  "items": [
-  {
-   "title": "葬送的芙莉莲",
-   "group": "番剧",
-   "kind": "番剧",
-   "cover": "https://i0.hdslb.com/bfs/bangumi/image/f3ebb500b701a387f5abde67516c5c96bbd2faff.png",
-   "url": "https://www.bilibili.com/bangumi/play/ss46089",
-   "status": "在看",
-   "ep": "全28话",
-   "score": 9.9,
-   "badge": "大会员",
-   "summary": "寿命逾千年的魔法使芙莉莲，以曾经共同战胜魔王的勇者辛美尔之死为契机，踏上了了解人类的旅途。 邂逅了同属勇者小队的僧侣海塔"
-  },
   {
    "title": "不时用俄语小声说真心话的邻桌艾莉同学",
    "group": "番剧",
@@ -30,6 +18,18 @@ window.__BANGUMI__ = {
    "score": 7.9,
    "badge": "独家",
    "summary": "坐在久世政近邻桌的艾莉同学，看政近的目光总是很冷淡。 然而她又时不时地用俄语向他表露心意…… 而这些话语从未被政近错过。"
+  },
+  {
+   "title": "葬送的芙莉莲",
+   "group": "番剧",
+   "kind": "番剧",
+   "cover": "https://i0.hdslb.com/bfs/bangumi/image/f3ebb500b701a387f5abde67516c5c96bbd2faff.png",
+   "url": "https://www.bilibili.com/bangumi/play/ss46089",
+   "status": "在看",
+   "ep": "全28话",
+   "score": 9.9,
+   "badge": "大会员",
+   "summary": "寿命逾千年的魔法使芙莉莲，以曾经共同战胜魔王的勇者辛美尔之死为契机，踏上了了解人类的旅途。 邂逅了同属勇者小队的僧侣海塔"
   },
   {
    "title": "魔女之旅",
@@ -44,18 +44,6 @@ window.__BANGUMI__ = {
    "summary": "某个地方有一位旅人，她的名字是伊蕾娜。 是一位年纪轻轻就成了魔法使中最上位「魔女」的天才。 因为向往着幼时读过的旅行故事"
   },
   {
-   "title": "宇宙探索编辑部",
-   "group": "影视",
-   "kind": "电影",
-   "cover": "https://i0.hdslb.com/bfs/bangumi/image/a265dad2fdd00517d6f8a485ebdbd780dd1cfae3.png",
-   "url": "https://www.bilibili.com/bangumi/play/ss45127?theme=movie",
-   "status": "在看",
-   "ep": "2023年4月1日",
-   "score": 9.6,
-   "badge": "大会员",
-   "summary": "脑洞大开高分奇片，地球人外星人千里奔现！ 唐志军（杨皓宇 饰）是一家诞生于上世纪八十年代的科幻杂志——《宇宙探索》编辑部"
-  },
-  {
    "title": "马达加斯加的企鹅",
    "group": "影视",
    "kind": "电影",
@@ -66,6 +54,18 @@ window.__BANGUMI__ = {
    "score": 9.8,
    "badge": "大会员",
    "summary": "为了给最疼爱的小老弟菜鸟（克里斯多夫·奈茨 Christopher Knights 配音）庆生，老大（汤姆·麦格拉思 T"
+  },
+  {
+   "title": "宇宙探索编辑部",
+   "group": "影视",
+   "kind": "电影",
+   "cover": "https://i0.hdslb.com/bfs/bangumi/image/a265dad2fdd00517d6f8a485ebdbd780dd1cfae3.png",
+   "url": "https://www.bilibili.com/bangumi/play/ss45127?theme=movie",
+   "status": "在看",
+   "ep": "2023年4月1日",
+   "score": 9.6,
+   "badge": "大会员",
+   "summary": "脑洞大开高分奇片，地球人外星人千里奔现！ 唐志军（杨皓宇 饰）是一家诞生于上世纪八十年代的科幻杂志——《宇宙探索》编辑部"
   },
   {
    "title": "游弋在风暴之中",
